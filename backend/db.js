@@ -1,19 +1,26 @@
-const mysql = require("mysql2");
+require('dotenv').config();
+const mysql = require('mysql2/promise');
 
-const db = mysql.createConnection({
-  host: "127.0.0.1",
-  user: "root",
-  password: "admin123",
-  database: "fest_db",
-  port: 3306
+// Create a connection pool (better for handling multiple users)
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-db.connect((err) => {
-  if (err) {
-    console.log("DB connection failed ❌", err);
-  } else {
-    console.log("Connected to MariaDB ✅");
+// Simple test to ensure MariaDB is reachable
+(async () => {
+  try {
+    const connection = await pool.getConnection();
+    console.log("Connected to MariaDB via Promise Pool ✅");
+    connection.release(); // Return the connection to the pool
+  } catch (err) {
+    console.error("❌ Database connection failed: ", err.message);
   }
-});
+})();
 
-module.exports = db;
+module.exports = pool;
