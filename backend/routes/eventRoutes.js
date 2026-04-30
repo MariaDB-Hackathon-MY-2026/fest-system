@@ -4,6 +4,18 @@ const db = require("../db");
 const authenticateToken = require("../middleware/authMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
 
+// GET /api/events/types
+// Provides a list of predefined event types and their points for the frontend dropdown.
+router.get("/types", async (req, res) => {
+    try {
+        const [eventTypes] = await db.query('SELECT name, points FROM event_types ORDER BY points ASC');
+        res.json({ success: true, data: eventTypes });
+    } catch (err) {
+        console.error("Fetch Event Types Error:", err);
+        res.status(500).json({ success: false, message: "Could not load event types." });
+    }
+});
+
 // --- Helper Function: The 6-Digit Generator ---
 // We use a recursive-style check to guarantee the code is 100% unique
 async function generateUniqueCode() {

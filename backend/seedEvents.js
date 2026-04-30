@@ -2,6 +2,24 @@ const db = require("./db");
 
 async function seedEvents() {
     try {
+        // 1. Create the event_types table if it doesn't exist
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS event_types (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                points INT NOT NULL
+            )
+        `);
+        
+        // 2. Clear existing entries and insert the default types
+        await db.query('TRUNCATE TABLE event_types');
+        const types = [
+            ["Exhibition / Showcase", 5], ["Talk / Seminar", 10], 
+            ["Workshop", 15], ["Competition", 20], ["Community Service", 25]
+        ];
+        await db.query('INSERT INTO event_types (name, points) VALUES ?', [types]);
+
+        // 3. Seed active test events
         // We'll set these to start an hour ago and end 24 hours from now
         // so they are definitely "Active" for your demo.
         const startTime = new Date(Date.now() - 3600000).toISOString().slice(0, 19).replace('T', ' ');
@@ -24,6 +42,7 @@ async function seedEvents() {
         await db.query(sql, [events]);
 
         console.log(`
+        ✅ Event Types seeded successfully!
         ✅ Events seeded successfully!
         -------------------------------------------
         1. CyberUnlocked Workshop (Code: 112233)

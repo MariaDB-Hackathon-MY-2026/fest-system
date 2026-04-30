@@ -117,5 +117,3 @@ node backend/seedEvents.js
 - **Multi-Language Support:** English and Bahasa Melayu toggles for accessibility.
 
 - **Faculty Branding:** Dynamic UI color-shifting based on the user's logged-in faculty.
-
-- ****

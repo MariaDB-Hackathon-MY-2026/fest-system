@@ -105,6 +105,8 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Load faculties for the Create Event dropdown
     populateFacultyDropdown();
+    // Load predefined event types for the Create Event dropdown
+    populateEventTypeDropdowns();
 });
 
 // Helper function to animate the bottom nav indicator
@@ -422,11 +424,20 @@ async function handleCreateEventSubmit(e, prefix) {
     e.preventDefault();
     const token = localStorage.getItem('fest_token');
     const msgDiv = document.getElementById(`${prefix}create-event-msg`);
-    
+
+    // 1. Validate inputs before sending
+    const kpiPointsValue = document.getElementById(`${prefix}event-kpi`).value;
+    if (parseInt(kpiPointsValue, 10) < 0) {
+        showToast("KPI Points cannot be negative.", "error");
+        msgDiv.innerText = "KPI Points cannot be a negative number.";
+        msgDiv.style.color = "red";
+        return; // Stop submission
+    }
+
     const payload = {
         eventName: document.getElementById(`${prefix}event-name`).value,
         description: document.getElementById(`${prefix}event-desc`).value,
-        kpiPoints: document.getElementById(`${prefix}event-kpi`).value,
+        kpiPoints: kpiPointsValue,
         maxCapacity: document.getElementById(`${prefix}event-cap`).value ? parseInt(document.getElementById(`${prefix}event-cap`).value) : null,
         startTime: document.getElementById(`${prefix}event-start`).value,
         endTime: document.getElementById(`${prefix}event-end`).value,
@@ -451,7 +462,20 @@ async function handleCreateEventSubmit(e, prefix) {
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${data.data.eventCode}`;
             msgDiv.innerHTML = `Success! Code: <span style="font-size: 2.5rem; display: block; color: #2563eb; letter-spacing: 10px; margin-top: 10px;">${data.data.eventCode}</span><br><img src="${qrUrl}" alt="Event QR Code" style="margin-top: 10px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 4px solid white;">`;
             msgDiv.style.color = "green";
-            e.target.reset();
+            
+            // Manually clear input fields, preserving dropdowns. e.target.reset() wipes out the JS-populated list.
+            document.getElementById(`${prefix}event-name`).value = '';
+            document.getElementById(`${prefix}event-desc`).value = '';
+            document.getElementById(`${prefix}event-cap`).value = '';
+            document.getElementById(`${prefix}event-start`).value = '';
+            document.getElementById(`${prefix}event-end`).value = '';
+
+            // Reset the event type dropdown to its default state without wiping it
+            const typeDropdown = document.getElementById(`${prefix}event-type-select`);
+            if (typeDropdown.options.length > 1) {
+                typeDropdown.selectedIndex = 1; // Select the first real event type
+                typeDropdown.dispatchEvent(new Event('change')); // Trigger change to update KPI
+            }
         } else {
             msgDiv.innerText = data.message; msgDiv.style.color = "red";
         }
@@ -629,6 +653,7 @@ window.openEditModal = function(eventId) {
     document.getElementById('edit-event-kpi').value = ev.kpi_points || '';
     document.getElementById('edit-event-cap').value = ev.max_capacity || '';
     document.getElementById('edit-event-faculty').value = ev.organized_by_faculty || '';
+    document.getElementById('edit-event-kpi').dispatchEvent(new Event('input')); // Trigger validation visually
 
     // Convert DB ISO string to browser local datetime format
     const formatForInput = (dateStr) => {
@@ -655,10 +680,17 @@ document.getElementById('edit-event-form')?.addEventListener('submit', async (e)
     const token = localStorage.getItem('fest_token');
     const submitBtn = e.target.querySelector('button[type="submit"]');
 
+    // Validate inputs before sending
+    const kpiPointsValue = document.getElementById('edit-event-kpi').value;
+    if (parseInt(kpiPointsValue, 10) < 0) {
+        showToast("KPI Points cannot be negative.", "error");
+        return; // Stop submission
+    }
+
     const payload = {
         eventName: document.getElementById('edit-event-name').value,
         description: document.getElementById('edit-event-desc').value,
-        kpiPoints: document.getElementById('edit-event-kpi').value,
+        kpiPoints: kpiPointsValue,
         maxCapacity: document.getElementById('edit-event-cap').value ? parseInt(document.getElementById('edit-event-cap').value) : null,
         startTime: document.getElementById('edit-event-start').value,
         endTime: document.getElementById('edit-event-end').value,
@@ -784,6 +816,86 @@ async function populateFacultyDropdown() {
             });
         }
     } catch (err) { console.error("Could not load faculties for dropdown", err); }
+}
+
+async function populateEventTypeDropdowns() {
+    const prefixes = ['', 'admin-']; // For organizer and admin forms
+    
+    try {
+        const res = await fetch(`${API_BASE}/events/types`);
+        const data = await res.json();
+        
+        if (data.success && data.data) {
+            const eventTypes = data.data;
+
+            prefixes.forEach(prefix => {
+                const typeDropdown = document.getElementById(`${prefix}event-type-select`);
+                const kpiInput = document.getElementById(`${prefix}event-kpi`);
+                if (!typeDropdown || !kpiInput) return;
+
+                // Add a "Custom" option for manual point inputs
+                typeDropdown.innerHTML = '<option value="custom">Other (Custom Points)</option>';
+
+                // Populate with types from API
+                eventTypes.forEach((type, index) => {
+                    const option = document.createElement('option');
+                    option.value = type.name;
+                    option.dataset.points = type.points; // Store points in a data attribute
+                    option.innerText = `${type.name} (${type.points} Pts)`;
+                    typeDropdown.appendChild(option);
+                });
+
+                // Add event listener to control the KPI input
+                typeDropdown.addEventListener('change', (e) => {
+                    const selectedOption = e.target.options[e.target.selectedIndex];
+                    if (e.target.value !== 'custom') {
+                        kpiInput.value = selectedOption.dataset.points;
+                    } else {
+                        if (!kpiInput.value) kpiInput.value = '10'; // Reset to a default value if empty
+                        kpiInput.focus();
+                    }
+                    
+                    const warningEl = document.getElementById(`${prefix}event-kpi-warning`);
+                    if (warningEl) {
+                        warningEl.style.display = parseInt(kpiInput.value, 10) > 100 ? 'block' : 'none';
+                    }
+                });
+
+                // Set dropdown to 'Other' if user manually types in KPI input
+                kpiInput.addEventListener('input', () => {
+                    typeDropdown.value = 'custom';
+                    
+                    const warningEl = document.getElementById(`${prefix}event-kpi-warning`);
+                    if (warningEl) {
+                        warningEl.style.display = parseInt(kpiInput.value, 10) > 100 ? 'block' : 'none';
+                    }
+                });
+
+                // Initialize with the first event type from the API
+                if (eventTypes.length > 0) {
+                    typeDropdown.value = eventTypes[0].name;
+                    kpiInput.value = eventTypes[0].points;
+                }
+            });
+
+            // Attach real-time validation to the Edit Event modal
+            const editKpiInput = document.getElementById('edit-event-kpi');
+            const editWarningEl = document.getElementById('edit-event-kpi-warning');
+            if (editKpiInput && editWarningEl) {
+                editKpiInput.addEventListener('input', (e) => {
+                    const kpiValue = parseInt(e.target.value, 10);
+                    editWarningEl.style.display = kpiValue > 100 ? 'block' : 'none';
+                });
+            }
+        }
+    } catch (err) {
+        console.error("Could not load event types for dropdown", err);
+        // If API fails, ensure custom input is enabled as a fallback
+        prefixes.forEach(prefix => {
+            const kpiInput = document.getElementById(`${prefix}event-kpi`);
+            if (kpiInput) kpiInput.disabled = false;
+        });
+    }
 }
 
 async function loadProfile(containerId = 'profile-content') {

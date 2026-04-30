@@ -137,10 +137,12 @@
                     <form id="create-event-form">
                         <input type="text" id="event-name" class="scan-input" placeholder="Event Name (e.g. Cyber Security Talk)" style="font-size: 1rem; letter-spacing: normal;" required>
                         <input type="text" id="event-desc" class="scan-input" placeholder="Description" style="font-size: 1rem; letter-spacing: normal;" required>
-                        <div style="display: flex; gap: 10px;">
+                        <select id="event-type-select" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 14px; margin-bottom: 15px; width: 100%;"></select>
+                        <div style="display: flex; gap: 10px; margin-bottom: 5px;">
                             <input type="number" id="event-kpi" class="scan-input" placeholder="KPI Points" style="font-size: 1rem; letter-spacing: normal; width: 50%;" required>
                             <input type="number" id="event-cap" class="scan-input" placeholder="Max Capacity" style="font-size: 1rem; letter-spacing: normal; width: 50%;">
                         </div>
+                        <div id="event-kpi-warning" style="color: #ef4444; font-size: 0.85rem; font-weight: 500; margin-bottom: 15px; display: none;">⚠️ Warning: You have entered an extremely high KPI value (>100).</div>
                         <select id="event-faculty" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 14px; margin-bottom: 15px;">
                             <option value="">General / University-Wide Event</option>
                             <!-- Faculties injected via JS -->
@@ -192,10 +194,12 @@
                     <form id="admin-create-event-form">
                         <input type="text" id="admin-event-name" class="scan-input" placeholder="Event Name (e.g. Cyber Security Talk)" style="font-size: 1rem; letter-spacing: normal;" required>
                         <input type="text" id="admin-event-desc" class="scan-input" placeholder="Description" style="font-size: 1rem; letter-spacing: normal;" required>
-                        <div style="display: flex; gap: 10px;">
+                        <select id="admin-event-type-select" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 14px; margin-bottom: 15px; width: 100%;"></select>
+                        <div style="display: flex; gap: 10px; margin-bottom: 5px;">
                             <input type="number" id="admin-event-kpi" class="scan-input" placeholder="KPI Points" style="font-size: 1rem; letter-spacing: normal; width: 50%;" required>
                             <input type="number" id="admin-event-cap" class="scan-input" placeholder="Max Capacity" style="font-size: 1rem; letter-spacing: normal; width: 50%;">
                         </div>
+                        <div id="admin-event-kpi-warning" style="color: #ef4444; font-size: 0.85rem; font-weight: 500; margin-bottom: 15px; display: none;">⚠️ Warning: You have entered an extremely high KPI value (>100).</div>
                         <select id="admin-event-faculty" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 14px; margin-bottom: 15px;">
                             <option value="">General / University-Wide Event</option>
                         </select>
@@ -267,10 +271,11 @@
                 <input type="hidden" id="edit-event-id">
                 <input type="text" id="edit-event-name" class="scan-input" placeholder="Event Name" style="font-size: 1rem; letter-spacing: normal;" required>
                 <input type="text" id="edit-event-desc" class="scan-input" placeholder="Description" style="font-size: 1rem; letter-spacing: normal;" required>
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 5px;">
                     <input type="number" id="edit-event-kpi" class="scan-input" placeholder="KPI Points" style="font-size: 1rem; letter-spacing: normal; width: 50%;" required>
                     <input type="number" id="edit-event-cap" class="scan-input" placeholder="Max Capacity" style="font-size: 1rem; letter-spacing: normal; width: 50%;">
                 </div>
+                <div id="edit-event-kpi-warning" style="color: #ef4444; font-size: 0.85rem; font-weight: 500; margin-bottom: 10px; display: none;">⚠️ Warning: You have entered an extremely high KPI value (>100).</div>
                 <select id="edit-event-faculty" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 14px; margin-bottom: 15px;">
                     <option value="">General / University-Wide Event</option>
                 </select>
