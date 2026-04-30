@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FESt System</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Global Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- ======================= -->
+    <!-- LOGIN VIEW              -->
+    <!-- ======================= -->
+    <div id="login-view" class="view active login-wrapper">
+        <div class="login-card">
+            <div class="logo-icon">🎓</div>
+            <h1>FESt System</h1>
+            <p class="subtitle">Scan. Earn. Lead.</p>
+            
+            <form id="login-form">
+                <input type="text" id="student-id" placeholder="Student / Staff ID" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <p id="login-error" class="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- ======================= -->
+    <!-- STUDENT WORKSPACE       -->
+    <!-- ======================= -->
+    <div id="student-workspace-view" class="view">
+        
+        <!-- Settings Button (Mobile Floating) -->
+        <button id="settings-btn" class="settings-fab" onclick="openSettingsModal()">⚙️</button>
+        
+        <!-- Header / Navigation -->
+        <nav class="bottom-nav">
+            <div id="nav-indicator" class="nav-indicator"></div>
+            <button class="nav-btn active" onclick="switchTab('leaderboard')"><span class="nav-icon">🏆</span> Leaderboard</button>
+            <button class="nav-btn" onclick="switchTab('scanner')"><span class="nav-icon">📷</span> Scan</button>
+            <button class="nav-btn" onclick="switchTab('profile')"><span class="nav-icon">👤</span> Profile</button>
+            <button class="nav-btn" onclick="logout()"><span class="nav-icon">🚪</span> Logout</button>
+        </nav>
+
+        <!-- Tabs container -->
+        <div class="tabs-container">
+            <!-- LEADERBOARD TAB -->
+            <div id="leaderboard-tab" class="tab active">
+                <h2>Faculty Leaderboard</h2>
+                <div id="leaderboard-content" class="dashboard-card">Loading...</div>
+            </div>
+
+            <!-- SCANNER TAB -->
+            <div id="scanner-tab" class="tab">
+                <h2>Scan Event</h2>
+                <div id="scanner-content" class="dashboard-card">
+                    <div id="qr-reader-container" style="text-align: center; margin-bottom: 15px;">
+                        <button type="button" id="start-camera-btn" class="scan-btn" onclick="startCameraScanner('qr-reader', 'event-code', 'stop-camera-btn')" style="background-color: #10b981; margin-bottom: 10px;">📷 Scan QR Code</button>
+                        <button type="button" id="stop-camera-btn" class="scan-btn" onclick="stopCameraScanner()" style="background-color: #ef4444; margin-bottom: 10px; display: none;">🛑 Stop Camera</button>
+                        <div id="qr-reader" style="width: 100%; border-radius: 8px; overflow: hidden; display: none; border: 2px solid #cbd5e1;"></div>
+                    </div>
+                    <div style="text-align: center; margin: 15px 0; color: #64748b; font-weight: bold; font-size: 0.9rem;">— OR ENTER MANUALLY —</div>
+                    <form id="scan-form">
+                        <input type="text" id="event-code" class="scan-input" placeholder="000000" pattern="\d{6}" required autocomplete="off">
+                        <button type="submit" class="scan-btn">Submit Code</button>
+                    </form>
+                    <p id="scan-message" class="scan-msg"></p>
+                    <h3 style="margin-top: 20px; font-size: 1.1rem; color: #0f172a;">📅 Active Events</h3>
+                    <div id="student-active-events" style="margin-top: 10px;">Loading events...</div>
+                </div>
+            </div>
+
+            <!-- PROFILE TAB -->
+            <div id="profile-tab" class="tab">
+                <h2>My Profile</h2>
+                <div id="profile-content" class="dashboard-card">History will go here...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================= -->
+    <!-- ORGANIZER WORKSPACE     -->
+    <!-- ======================= -->
+    <div id="organizer-workspace-view" class="view workspace-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">📝 Organizer Panel</div>
+            <nav class="sidebar-nav">
+                <button onclick="switchTab('org-profile')">👤 Profile</button>
+                <button onclick="switchTab('org-leaderboard')">🏆 Leaderboard</button>
+                <button onclick="switchTab('org-scanner')">📷 Scan</button>
+                <button onclick="switchTab('org-create')">➕ Create Event</button>
+                <button onclick="switchTab('org-manage')">📋 Manage My Events</button>
+                <button onclick="openSettingsModal()" class="settings-sidebar-btn">⚙️ Settings</button>
+                <button onclick="logout()" class="logout-btn">🚪 Logout</button>
+            </nav>
+        </aside>
+        <main class="workspace-content">
+            <div id="org-profile-tab" class="tab">
+                <h2>My Profile</h2>
+                <div id="org-profile-content" class="dashboard-card">Loading...</div>
+            </div>
+            <div id="org-scanner-tab" class="tab">
+                <h2>Scan Event</h2>
+                <div class="dashboard-card">
+                    <div id="org-qr-reader-container" style="text-align: center; margin-bottom: 15px;">
+                        <button type="button" id="org-start-camera-btn" class="scan-btn" onclick="startCameraScanner('org-qr-reader', 'org-event-code', 'org-stop-camera-btn')" style="background-color: #10b981; margin-bottom: 10px;">📷 Scan QR Code</button>
+                        <button type="button" id="org-stop-camera-btn" class="scan-btn" onclick="stopCameraScanner()" style="background-color: #ef4444; margin-bottom: 10px; display: none;">🛑 Stop Camera</button>
+                        <div id="org-qr-reader" style="width: 100%; border-radius: 8px; overflow: hidden; display: none; border: 2px solid #cbd5e1;"></div>
+                    </div>
+                    <div style="text-align: center; margin: 15px 0; color: #64748b; font-weight: bold; font-size: 0.9rem;">— OR ENTER MANUALLY —</div>
+                    <form id="org-scan-form">
+                        <input type="text" id="org-event-code" class="scan-input" placeholder="000000" pattern="\d{6}" required autocomplete="off">
+                        <button type="submit" class="scan-btn">Submit Code</button>
+                    </form>
+                    <p id="org-scan-message" class="scan-msg"></p>
+                    <h3 style="margin-top: 20px; font-size: 1.1rem; color: #0f172a;">📅 Active Events</h3>
+                    <div id="org-active-events-list" style="margin-top: 10px;">Loading events...</div>
+                </div>
+            </div>
+            <div id="org-leaderboard-tab" class="tab">
+                <h2>Detailed Faculty Leaderboard</h2>
+                <div id="org-leaderboard-content" class="dashboard-card">Loading...</div>
+            </div>
+            <div id="org-create-tab" class="tab active">
+                <h2>Create New Event</h2>
+                <div class="dashboard-card">
+                    <form id="create-event-form">
+                        <input type="text" id="event-name" class="scan-input" placeholder="Event Name (e.g. Cyber Security Talk)" style="font-size: 1rem; letter-spacing: normal;" required>
+                        <input type="text" id="event-desc" class="scan-input" placeholder="Description" style="font-size: 1rem; letter-spacing: normal;" required>
+                        <select id="event-type-select" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 14px; margin-bottom: 15px; width: 100%;"></select>
+                        <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                            <input type="number" id="event-kpi" class="scan-input" placeholder="KPI Points" style="font-size: 1rem; letter-spacing: normal; width: 50%;" required>
+                            <input type="number" id="event-cap" class="scan-input" placeholder="Max Capacity" style="font-size: 1rem; letter-spacing: normal; width: 50%;">
+                        </div>
+                        <div id="event-kpi-warning" style="color: #ef4444; font-size: 0.85rem; font-weight: 500; margin-bottom: 15px; display: none;">⚠️ Warning: You have entered an extremely high KPI value (>100).</div>
+                        <select id="event-faculty" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 14px; margin-bottom: 15px;">
+                            <option value="">General / University-Wide Event</option>
+                            <!-- Faculties injected via JS -->
+                        </select>
+                        <div style="display: flex; gap: 10px;">
+                            <div style="width: 50%;"><label style="font-size: 0.8rem; color: #64748b;">Start Time</label><input type="datetime-local" id="event-start" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 10px;" required></div>
+                            <div style="width: 50%;"><label style="font-size: 0.8rem; color: #64748b;">End Time</label><input type="datetime-local" id="event-end" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 10px;" required></div>
+                        </div>
+                        <button type="submit" class="scan-btn">Create & Generate Code</button>
+                    </form>
+                    <p id="create-event-msg" class="scan-msg" style="text-align: center;"></p>
+                </div>
+            </div>
+            <div id="org-manage-tab" class="tab">
+                <h2>Manage Events</h2>
+                <div id="org-events-list">Loading...</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ======================= -->
+    <!-- ADMIN WORKSPACE         -->
+    <!-- ======================= -->
+    <div id="admin-workspace-view" class="view workspace-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">⚙️ Admin Panel</div>
+            <nav class="sidebar-nav">
+                <button onclick="switchTab('admin-profile')">👤 Profile</button>
+                <button onclick="switchTab('admin-leaderboard')">🏆 Leaderboard</button>
+                <button onclick="switchTab('admin-create')">➕ Create Event</button>
+                <button onclick="switchTab('admin-controls')">🌍 Global Events</button>
+                <button onclick="switchTab('admin-audit')">🔍 System Audit Logs</button>
+                <button onclick="openSettingsModal()" class="settings-sidebar-btn">⚙️ Settings</button>
+                <button onclick="logout()" class="logout-btn">🚪 Logout</button>
+            </nav>
+        </aside>
+        <main class="workspace-content">
+            <div id="admin-profile-tab" class="tab">
+                <h2>My Profile</h2>
+                <div id="admin-profile-content" class="dashboard-card">Loading...</div>
+            </div>
+            <div id="admin-leaderboard-tab" class="tab">
+                <h2>Detailed Faculty Leaderboard</h2>
+                <div id="admin-leaderboard-content" class="dashboard-card">Loading...</div>
+            </div>
+            <div id="admin-create-tab" class="tab">
+                <h2>Create New Event</h2>
+                <div class="dashboard-card">
+                    <form id="admin-create-event-form">
+                        <input type="text" id="admin-event-name" class="scan-input" placeholder="Event Name (e.g. Cyber Security Talk)" style="font-size: 1rem; letter-spacing: normal;" required>
+                        <input type="text" id="admin-event-desc" class="scan-input" placeholder="Description" style="font-size: 1rem; letter-spacing: normal;" required>
+                        <select id="admin-event-type-select" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 14px; margin-bottom: 15px; width: 100%;"></select>
+                        <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                            <input type="number" id="admin-event-kpi" class="scan-input" placeholder="KPI Points" style="font-size: 1rem; letter-spacing: normal; width: 50%;" required>
+                            <input type="number" id="admin-event-cap" class="scan-input" placeholder="Max Capacity" style="font-size: 1rem; letter-spacing: normal; width: 50%;">
+                        </div>
+                        <div id="admin-event-kpi-warning" style="color: #ef4444; font-size: 0.85rem; font-weight: 500; margin-bottom: 15px; display: none;">⚠️ Warning: You have entered an extremely high KPI value (>100).</div>
+                        <select id="admin-event-faculty" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 14px; margin-bottom: 15px;">
+                            <option value="">General / University-Wide Event</option>
+                        </select>
+                        <div style="display: flex; gap: 10px;">
+                            <div style="width: 50%;"><label style="font-size: 0.8rem; color: #64748b;">Start Time</label><input type="datetime-local" id="admin-event-start" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 10px;" required></div>
+                            <div style="width: 50%;"><label style="font-size: 0.8rem; color: #64748b;">End Time</label><input type="datetime-local" id="admin-event-end" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 10px;" required></div>
+                        </div>
+                        <button type="submit" class="scan-btn">Create & Generate Code</button>
+                    </form>
+                    <p id="admin-create-event-msg" class="scan-msg" style="text-align: center;"></p>
+                </div>
+            </div>
+            <div id="admin-controls-tab" class="tab active">
+                <h2>Global Administration</h2>
+                <button class="scan-btn" onclick="forceRefreshLeaderboard()" style="margin-bottom: 20px; background-color: #ef4444; width: auto; padding: 10px 20px;">🚨 Force Refresh Leaderboard Cache</button>
+                <div id="admin-events-list">Loading...</div>
+            </div>
+            <div id="admin-audit-tab" class="tab">
+                <h2>Live Audit Logs</h2>
+                <div class="dashboard-card" style="background: #1e293b; color: #cbd5e1;">
+                    <div id="audit-log-content" style="max-height: 400px; overflow-y: auto; font-family: monospace;">Waiting for system events...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ======================= -->
+    <!-- QR CODE POPUP MODAL     -->
+    <!-- ======================= -->
+    <div id="qr-modal-overlay" class="modal-overlay">
+        <div class="modal-content dashboard-card" style="text-align: center; max-width: 400px; width: 100%; transition: all 0.3s ease;">
+            <h2 id="modal-event-name" style="margin-bottom: 5px; color: #0f172a;">Event Name</h2>
+            <p class="subtitle" style="margin-bottom: 15px;">Students can scan this code to record attendance.</p>
+            <img id="modal-qr-img" src="" alt="QR Code" style="margin: 10px 0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 5px solid white; max-width: 250px; width: 100%;">
+            <div id="modal-event-code" style="font-size: 3.5rem; color: #2563eb; letter-spacing: 15px; font-weight: bold; margin-bottom: 20px;">000000</div>
+            <div style="display: flex; gap: 10px;">
+                <button id="enlarge-btn" onclick="toggleEnlargeQR()" class="scan-btn" style="background-color: #3b82f6; flex: 1;">🔍 Enlarge</button>
+                <button onclick="closeQRModal()" class="scan-btn" style="background-color: #ef4444; flex: 1;">Close Screen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================= -->
+    <!-- SETTINGS POPUP MODAL    -->
+    <!-- ======================= -->
+    <div id="settings-modal-overlay" class="modal-overlay">
+        <div class="modal-content dashboard-card" style="max-width: 350px; width: 100%;">
+            <h2 style="margin-bottom: 20px; color: #0f172a; text-align: center;">Settings</h2>
+            
+            <div class="setting-row">
+                <label>Dark Mode</label>
+                <label class="switch">
+                    <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <button onclick="closeSettingsModal()" class="scan-btn" style="background-color: #64748b; margin-top: 30px;">Close</button>
+        </div>
+    </div>
+
+    <!-- ======================= -->
+    <!-- EDIT EVENT POPUP MODAL  -->
+    <!-- ======================= -->
+    <div id="edit-modal-overlay" class="modal-overlay">
+        <div class="modal-content dashboard-card" style="max-width: 500px; width: 100%;">
+            <h2 style="margin-bottom: 20px; color: #0f172a; text-align: center;">Edit Event</h2>
+            <form id="edit-event-form">
+                <input type="hidden" id="edit-event-id">
+                <input type="text" id="edit-event-name" class="scan-input" placeholder="Event Name" style="font-size: 1rem; letter-spacing: normal;" required>
+                <input type="text" id="edit-event-desc" class="scan-input" placeholder="Description" style="font-size: 1rem; letter-spacing: normal;" required>
+                <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                    <input type="number" id="edit-event-kpi" class="scan-input" placeholder="KPI Points" style="font-size: 1rem; letter-spacing: normal; width: 50%;" required>
+                    <input type="number" id="edit-event-cap" class="scan-input" placeholder="Max Capacity" style="font-size: 1rem; letter-spacing: normal; width: 50%;">
+                </div>
+                <div id="edit-event-kpi-warning" style="color: #ef4444; font-size: 0.85rem; font-weight: 500; margin-bottom: 10px; display: none;">⚠️ Warning: You have entered an extremely high KPI value (>100).</div>
+                <select id="edit-event-faculty" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 14px; margin-bottom: 15px;">
+                    <option value="">General / University-Wide Event</option>
+                </select>
+                <div style="display: flex; gap: 10px;">
+                    <div style="width: 50%;"><label style="font-size: 0.8rem; color: #64748b;">Start Time</label><input type="datetime-local" id="edit-event-start" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 10px;" required></div>
+                    <div style="width: 50%;"><label style="font-size: 0.8rem; color: #64748b;">End Time</label><input type="datetime-local" id="edit-event-end" class="scan-input" style="font-size: 1rem; letter-spacing: normal; padding: 10px;" required></div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button type="button" onclick="closeEditModal()" class="scan-btn" style="background-color: #64748b; flex: 1;">Cancel</button>
+                    <button type="submit" class="scan-btn" style="flex: 2;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="app.js"></script>
+</body>
+</html>iv>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="app.js"></script>
+</body>
+</html>
